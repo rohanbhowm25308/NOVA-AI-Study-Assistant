@@ -1,0 +1,19 @@
+# Local database (each environment/deploy generates its own)
+study_assistant.db
+study_assistant.db-journal
+
+# Uploaded files are scratch space, not source
+uploads/*
+!uploads/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# Editor/OS cruft
+.DS_Store
+.vscode/
+.idea/

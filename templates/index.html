@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA — AI Study Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="starfield" id="starfield">
+  <div class="stars-layer stars-layer-1"></div>
+  <div class="stars-layer stars-layer-2"></div>
+  <div class="stars-layer stars-layer-3"></div>
+</div>
+
+<div class="app-shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-orb"><span>◈</span></div>
+      <div class="brand-text">
+        <h1>NOVA</h1>
+        <p>AI Study Assistant</p>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">◧</span>Dashboard</button>
+      <button class="nav-item" data-view="topics"><span class="nav-icon">◇</span>Topics</button>
+      <button class="nav-item" data-view="schedule"><span class="nav-icon">◫</span>Schedule</button>
+      <button class="nav-item" data-view="tutor"><span class="nav-icon">◎</span>AI Tutor</button>
+      <button class="nav-item" data-view="quiz"><span class="nav-icon">✦</span>Quiz</button>
+      <button class="nav-item" data-view="flashcards"><span class="nav-icon">▤</span>Flashcards</button>
+      <button class="nav-item" data-view="pdf"><span class="nav-icon">▧</span>PDF Lab</button>
+      <button class="nav-item" data-view="notes"><span class="nav-icon">✎</span>Notes</button>
+      <button class="nav-item" data-view="insights"><span class="nav-icon">◭</span>AI Insights</button>
+    </nav>
+
+    <div class="streak-widget">
+      <div class="streak-flame">🔥</div>
+      <div>
+        <div class="streak-count" id="streakCount">0</div>
+        <div class="streak-label">day streak</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <header class="view-header">
+        <div>
+          <p class="eyebrow">Mission Control</p>
+          <h2>Welcome back, learner.</h2>
+        </div>
+        <div class="ring-wrap">
+          <svg class="progress-ring" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+            <circle class="ring-fg" id="progressRing" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="ring-label"><span id="progressPct">0%</span><small>complete</small></div>
+        </div>
+      </header>
+
+      <div class="stat-grid">
+        <div class="stat-card glass">
+          <p class="stat-label">Subjects</p>
+          <p class="stat-value" id="statSubjects">0</p>
+        </div>
+        <div class="stat-card glass">
+          <p class="stat-label">Topics Done</p>
+          <p class="stat-value" id="statTopics">0/0</p>
+        </div>
+        <div class="stat-card glass">
+          <p class="stat-label">Quiz Average</p>
+          <p class="stat-value" id="statQuiz">0%</p>
+        </div>
+        <div class="stat-card glass">
+          <p class="stat-label">Study Streak</p>
+          <p class="stat-value" id="statStreak">0 days</p>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="panel glass">
+          <h3>Subject Progress</h3>
+          <canvas id="subjectChart" height="180"></canvas>
+        </div>
+        <div class="panel glass">
+          <h3>Priority Mix (pending)</h3>
+          <canvas id="priorityChart" height="180"></canvas>
+        </div>
+        <div class="panel glass span-2">
+          <h3>Upcoming Deadlines</h3>
+          <div id="upcomingList" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOPICS -->
+    <section class="view" id="view-topics">
+      <header class="view-header">
+        <div><p class="eyebrow">Knowledge Tree</p><h2>Subjects &amp; Topics</h2></div>
+        <button class="btn-primary" id="btnAddSubject">+ New Subject</button>
+      </header>
+      <div id="subjectsWrap" class="subjects-wrap"></div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="view" id="view-schedule">
+      <header class="view-header">
+        <div><p class="eyebrow">Time Engine</p><h2>AI-Generated Schedule</h2></div>
+        <div class="row-inline">
+          <input type="number" id="dailyMinutes" value="120" min="30" step="15" class="input-sm">
+          <span class="hint">min/day</span>
+          <button class="btn-primary" id="btnGenSchedule">⚡ Generate Plan</button>
+        </div>
+      </header>
+      <div id="scheduleWrap" class="schedule-wrap"></div>
+    </section>
+
+    <!-- AI TUTOR -->
+    <section class="view" id="view-tutor">
+      <header class="view-header">
+        <div><p class="eyebrow">Ask Anything</p><h2>AI Tutor</h2></div>
+        <div class="mode-toggle" id="tutorMode">
+          <button class="mode-btn active" data-mode="normal">Normal</button>
+          <button class="mode-btn" data-mode="eli5">ELI5</button>
+          <button class="mode-btn" data-mode="professor">Professor</button>
+        </div>
+      </header>
+      <div class="chat-wrap glass">
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Ask a doubt, a formula, or say 'explain photosynthesis'…">
+          <button class="btn-primary" id="btnSend">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="view" id="view-quiz">
+      <header class="view-header">
+        <div><p class="eyebrow">Test Yourself</p><h2>AI Quiz Generator</h2></div>
+      </header>
+      <div class="panel glass quiz-setup">
+        <select id="quizTopicSelect"></select>
+        <select id="quizType">
+          <option value="mcq">Multiple Choice</option>
+          <option value="truefalse">True / False</option>
+          <option value="fillblank">Fill in the Blank</option>
+          <option value="subjective">Subjective</option>
+        </select>
+        <input type="number" id="quizCount" value="10" min="5" max="15" class="input-sm">
+        <button class="btn-primary" id="btnGenQuiz">Generate Quiz</button>
+      </div>
+      <div id="quizArea"></div>
+    </section>
+
+    <!-- FLASHCARDS -->
+    <section class="view" id="view-flashcards">
+      <header class="view-header">
+        <div><p class="eyebrow">Spaced Repetition</p><h2>Flashcards</h2></div>
+        <div class="row-inline">
+          <select id="fcTopicSelect"></select>
+          <button class="btn-primary" id="btnGenFlashcards">✨ AI Generate</button>
+        </div>
+      </header>
+      <div id="flashcardsWrap" class="flashcards-wrap"></div>
+    </section>
+
+    <!-- PDF LAB -->
+    <section class="view" id="view-pdf">
+      <header class="view-header">
+        <div><p class="eyebrow">Document Intelligence</p><h2>PDF Learning Assistant</h2></div>
+      </header>
+      <div class="panel glass">
+        <input type="file" id="pdfFile" accept="application/pdf">
+        <button class="btn-primary" id="btnUploadPdf">Upload &amp; Analyze</button>
+        <p class="hint" style="margin-top:10px;">
+          Handles normal text PDFs, awkward exports (PowerPoint/Canva/Docs), and scanned/photographed pages via OCR — automatically, in that order.
+        </p>
+      </div>
+      <div id="pdfResult" class="pdf-result"></div>
+      <h3 class="sub-heading" id="pdfHistoryHeading" style="display:none;">Previously Analyzed</h3>
+      <div id="pdfHistoryList" class="list"></div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="view" id="view-notes">
+      <header class="view-header">
+        <div><p class="eyebrow">Distilled Knowledge</p><h2>AI Notes Generator</h2></div>
+      </header>
+      <div class="panel glass">
+        <textarea id="notesSource" placeholder="Paste text (or a chapter summary) to turn into notes…"></textarea>
+        <div class="row-inline">
+          <select id="notesStyle">
+            <option value="bullet">Bullet Notes</option>
+            <option value="cheatsheet">Cheat Sheet</option>
+            <option value="mindmap">Mind Map</option>
+          </select>
+          <button class="btn-primary" id="btnGenNotes">Generate Notes</button>
+        </div>
+        <div class="notes-or-divider"><span>or generate straight from a file</span></div>
+        <div class="row-inline">
+          <input type="file" id="notesFile" accept="application/pdf">
+          <button class="btn-primary" id="btnGenNotesFromFile">📄 Generate from PDF</button>
+        </div>
+      </div>
+      <div id="notesOutput" class="notes-output"></div>
+      <h3 class="sub-heading">Saved Notes</h3>
+      <div id="savedNotesList" class="list"></div>
+    </section>
+
+    <!-- AI INSIGHTS -->
+    <section class="view" id="view-insights">
+      <header class="view-header">
+        <div><p class="eyebrow">Deep Diagnostics</p><h2>AI Insights</h2></div>
+      </header>
+      <div class="dash-grid">
+        <div class="panel glass">
+          <h3>🎯 Exam Readiness</h3>
+          <div id="readinessWrap"></div>
+        </div>
+        <div class="panel glass">
+          <h3>😴 Burnout Check</h3>
+          <div id="burnoutWrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PERSISTENT CREDITS FOOTER (shows under every view) -->
+    <footer class="app-footer">
+      <p class="app-footer-about">
+        Built with Python &amp; Flask on the backend, plus AI/ML-driven NLP, adaptive scheduling, and predictive analytics.
+      </p>
+      <div class="app-footer-credit">
+        <span>Developed by <strong>Rohan Bhowmik</strong> — aspiring AI/ML, Data Science &amp; Web Development</span>
+        <div class="app-footer-links">
+          <a href="https://github.com/rohanbhowm25308" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1.16-.02-2.11-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.78 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.76.12 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.07.78 2.15 0 1.55-.01 2.8-.01 3.18 0 .3.21.66.79.55A10.51 10.51 0 0 0 23.5 12c0-6.35-5.15-11.5-11.5-11.5Z"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/rohan-bhowmik-b014473a1?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg>
+          </a>
+          <a href="https://www.instagram.com/rohan_._.bhowmik.84/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- ================= COMPANION RAIL ================= -->
+  <aside class="companion-rail">
+    <div class="companion-card glass">
+      <svg class="robot-illustration" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="robotGlow" cx="50%" cy="30%" r="60%">
+            <stop offset="0%" stop-color="#35d6ff" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#35d6ff" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="robotBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f4faff"/>
+            <stop offset="100%" stop-color="#c3ddf2"/>
+          </linearGradient>
+          <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#8fe8ff"/>
+            <stop offset="100%" stop-color="#1c7fb8"/>
+          </radialGradient>
+        </defs>
+
+        <circle cx="160" cy="160" r="150" fill="url(#robotGlow)"/>
+
+        <!-- orbiting halo loops around the head -->
+        <g class="orbit orbit-1"><ellipse cx="160" cy="140" rx="128" ry="46" fill="none" stroke="#35d6ff" stroke-width="1.6" opacity="0.55"/></g>
+        <g class="orbit orbit-2"><ellipse cx="160" cy="140" rx="46" ry="128" fill="none" stroke="#8b6bff" stroke-width="1.3" opacity="0.4"/></g>
+        <g class="orbit orbit-3"><ellipse cx="160" cy="140" rx="95" ry="95" fill="none" stroke="#4d7dff" stroke-width="1" opacity="0.35"/></g>
+        <circle class="pulse-dot" cx="160" cy="140" r="4" fill="#eaf6ff"/>
+
+        <!-- domed head -->
+        <path d="M78 150 C78 78 112 40 160 40 C208 40 242 78 242 150 C242 178 224 186 160 186 C96 186 78 178 78 150 Z"
+              fill="url(#robotBody)" stroke="#8fc3ea" stroke-width="2"/>
+        <!-- head side pods -->
+        <circle cx="76" cy="140" r="14" fill="url(#robotBody)" stroke="#8fc3ea" stroke-width="2"/>
+        <circle cx="244" cy="140" r="14" fill="url(#robotBody)" stroke="#8fc3ea" stroke-width="2"/>
+
+        <!-- visor -->
+        <rect x="100" y="108" width="120" height="52" rx="26" fill="#0a1730"/>
+        <circle class="eye" cx="134" cy="134" r="15" fill="url(#eyeGlow)"/>
+        <circle cx="129" cy="129" r="4" fill="#ffffff" opacity="0.9"/>
+        <circle class="eye" cx="186" cy="134" r="15" fill="url(#eyeGlow)"/>
+        <circle cx="181" cy="129" r="4" fill="#ffffff" opacity="0.9"/>
+
+        <!-- neck -->
+        <rect x="148" y="182" width="24" height="18" rx="6" fill="#b9d6ee"/>
+
+        <!-- body -->
+        <path d="M96 210 C96 196 130 200 160 200 C190 200 224 196 224 210 L220 288 C220 318 192 336 160 336 C128 336 100 318 100 288 Z"
+              fill="url(#robotBody)" stroke="#8fc3ea" stroke-width="2"/>
+        <!-- chest emblem -->
+        <path class="chest-glow" d="M160 232 L184 246 L176 284 L144 284 L136 246 Z" fill="#35d6ff" opacity="0.6"/>
+        <path d="M160 232 L184 246 L176 284 L144 284 L136 246 Z" fill="none" stroke="#eaf6ff" stroke-width="1.4" opacity="0.8"/>
+
+        <!-- arm nubs -->
+        <ellipse cx="90" cy="250" rx="18" ry="34" fill="url(#robotBody)" stroke="#8fc3ea" stroke-width="2"/>
+        <ellipse cx="230" cy="250" rx="18" ry="34" fill="url(#robotBody)" stroke="#8fc3ea" stroke-width="2"/>
+
+        <!-- glowing dais -->
+        <ellipse cx="160" cy="368" rx="108" ry="16" fill="none" stroke="#35d6ff" stroke-width="2" opacity="0.6"/>
+        <ellipse cx="160" cy="368" rx="108" ry="16" fill="#35d6ff" opacity="0.08"/>
+        <line x1="160" y1="336" x2="160" y2="358" stroke="#35d6ff" stroke-width="2" opacity="0.5"/>
+      </svg>
+      <p class="companion-name">NOVA</p>
+      <p class="companion-status" id="companionStatus">Systems online · ready to help</p>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal glass" id="modalBody"></div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
