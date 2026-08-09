@@ -103,8 +103,8 @@ with NLP-driven summarization and keyword extraction, a weighted adaptive
 scheduling engine, a curated-domain quiz generator, and predictive analytics
 for exam-readiness and burnout scoring.
 
-**Developed by Rohan Bhowmik** — aspiring AI/ML, Data Science & Web Development engineer.
+**Developed by Rohan Bhowmik** — aspiring AI/ML, Data Science & Web Development.
 
 - GitHub: [github.com/rohanbhowm25308](https://github.com/rohanbhowm25308)
-- LinkedIn: [linkedin.com/in/rohan-bhowmik-b014473a](https://www.linkedin.com/in/rohan-bhowmik-b014473a)
+- LinkedIn: [linkedin.com/in/rohan-bhowmik-b014473a](https://www.linkedin.com/in/rohan-bhowmik-b014473a1)
 - Instagram: [@rohan_._.bhowmik.84](https://www.instagram.com/rohan_._.bhowmik.84/)
